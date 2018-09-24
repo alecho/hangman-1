@@ -1,5 +1,3 @@
-require 'yaml'
-
 class Hangman	
 
 	attr_accessor :word, :answer, :guess, :result_array, :guesses_remaining, :word_array
@@ -34,18 +32,33 @@ class Hangman
 		if answer == "y"
 
 			save_game
-			# save_game
 		else puts "Play on!"
 		end
 	end
 
 	def open_saved
-		puts "here's the #{@answer}, open_saved method works" ###read from file########
+		puts "here's the #{@answer}, open_saved method works" ###readfrom file########
 	end
 
+	#Save the game to a file   ##load saved games into an array or hash so user can choose by number or index
+	def save_game
+		puts "Type a name for your saved game"
+		game_name = gets.chomp
+		filename = "#{game_name}.txt"
 
-#save was here
-
+		 ex_file = File.expand_path("./saved_games/#{filename}")
+		 
+		if File.exists?(ex_file)
+	   puts "#{filename} exists" #overwrite method?
+	  
+	   save_game
+	  else
+			File.open(ex_file, "w") do |f|
+				f.puts "some data"
+				puts "Your game was saved as #{filename}"  
+			end
+		end
+	end
 
 	#grab a random word from text file
 	def get_word
@@ -115,6 +128,7 @@ class Hangman
 	end
 
 	def is_over?
+		puts "guesses = #{@guesses_remaining}, result_array = #{@result_array}"
 		if (@guesses_remaining == 0 or @word.chomp == @result_array)
 			true
 		end
@@ -127,32 +141,6 @@ class Hangman
 
 end
 
-class Save
-		#Save the game to a file   ##load saved games into an array or hash so user can choose by number or index
-	def save_game
-		puts "Type a name for your saved game"
-		game_name = gets.chomp
-		filename = "#{game_name}.txt"
-
-		 ex_file = File.expand_path("./saved_games/#{filename}")
-		 
-		if File.exists?(ex_file)
-	   puts "#{filename} exists" #overwrite method?
-	  
-	   save_game
-	  else
-			File.open(ex_file, "w") do |f|
-
-				f.puts YAML::dump(game.game_data)
-
-				puts "Your game was saved as #{filename}"  
-			end
-		end
-	end
-end
-
-
-save_it = Save.new
 
 game = Hangman.new
 
@@ -162,12 +150,8 @@ game.get_word
 
 game.show_blanks
 
-# this works since 'game' gets me all the vars from attr_accessor
-# puts YAML::dump(game)
-
 while !game.is_over?
-	#game.prompt_save
-	save_it.prompt_save
+	game.prompt_save
 
 	game.prompt_guess
 
@@ -178,4 +162,3 @@ while !game.is_over?
 	game.check_win
 
 end
-
