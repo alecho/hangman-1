@@ -24,6 +24,18 @@ class Controller
 		@current_game.game_loop
 	end
 
+  def prompt_guess
+    letter = gets ''
+    @current_game.guess(letter)
+    if @current_game.last_guess_good?
+      puts 'Corrent!'
+    else
+      puts "WONG!"
+    end
+
+    prompt_guess if !@current_game.is_over?
+  end
+
 	def prompt_load_saved
 		puts	"Would you like to to open a saved game? Type y/n"
 		@answer = gets.chomp
@@ -100,12 +112,29 @@ end #controller class
 
 class Game
 
-	def initialize(word, guesses_remaining)
+  @word = ''
+  @guesses = []
+  @last_guessed = ''
 
-		@word = word
+	def initialize()
+    self.word = 'horse'
+    @guesses_remaining = 7
+	end
 
-	# attr_accessor :word, :answer, :guess, :result_array, :guesses_remaining, :word_array
+	def masked_word
+    @masked_word
+	end
 
+	def guess(letter)
+    # set last_guessed to letter
+    @last_guessed = letter
+    return false if guesses().include?(letter)
+
+    handle_guess(good_guess?(letter))  #make sure to call vars in context
+	end
+
+	def last_guess_good?
+    last_guess_good
 	end
 
 		#show the correct number of blank spaces
@@ -121,41 +150,6 @@ class Game
 
 	#alternative to match_letters, use word as first arg and guesses as an array, check each time looping thru word to check if there's a match and put match or leave
 
-	#check if the guess matches 1 or more letters and show letters in blanks
-	def match_letters #handle_guess
-		indexes_matched = @word_array.each_index.select { |i| @word_array[i] == @guess}
-
-		for x in indexes_matched do
-			@result_array[x] = guess
-		end
-
-		puts @result_array
-	end
-
-	#checks if players guess is included in word
-	def	good_guess?(g)
-		@word_array.include?(g)
-	end
-
-	def handle_guess(good)
-		return handle_good_guess if good
-
-		handle_bad_guess
-	end
-
-	def handle_good_guess
-		match_letters
-	end
-
-	def handle_bad_guess
-		puts "Guess again"
-	end
-
-	def decrement_guesses
-		@guesses_remaining = @guesses_remaining-1
-		puts "You have #{@guesses_remaining} guesses left"
-	end
-
 	def check_win
 		p @guesses_remaining
 		if @guesses_remaining == 0
@@ -169,9 +163,7 @@ class Game
 
 	def is_over?
 		# puts "guesses = #{@guesses_remaining}, result_array = #{@result_array}"
-		if (@guesses_remaining == 0 or @word.chomp == @result_array)
-			true
-		end
+		(@guesses_remaining == 0 or @word.chomp == @result_array)
 	end
 
 	def good_bye
@@ -179,30 +171,98 @@ class Game
 		exit
 	end
 
-	def game_loop
+  def game_loop
 
-		@current_game.prompt_load_saved
+    @current_game.prompt_load_saved
 
-		self.get_word
+    self.get_word
 
-		self.show_blanks
+    self.show_blanks
 
-		while !self.is_over?
-			self.prompt_save
+    while !self.is_over?
+      self.prompt_save
 
-			self.prompt_guess
+      self.prompt_guess
 
-			self.decrement_guesses
+      self.decrement_guesses
 
-			self.handle_guess(game.good_guess?(game.guess))  #make sure to call vars in context
 
-			self.check_win
+      self.check_win
 
+    end
+  end
+
+  private
+
+	def handle_guess(good)
+    return handle_good_guess() if good
+
+    handle_bad_guess()
+	end
+
+	def handle_good_guess
+    add_guess(@last_guessed)
+    # Update masked word
+    @last_guess_good = true
+	end
+
+	def handle_bad_guess
+    add_guess(@last_guessed)
+    decrement_guesses
+    @last_guess_good = false
+	end
+
+	#checks if players guess is included in word
+	def	good_guess?(g)
+    word().include?(g)
+	end
+
+	#check if the guess matches 1 or more letters and show letters in blanks
+	def match_letters #handle_guess
+		indexes_matched = @word_array.each_index.select { |i| @word_array[i] == @guess}
+
+		for x in indexes_matched do
+			@result_array[x] = guess
 		end
+
+		puts @result_array
+	end
+
+  def word=(word)
+    @word = word
+    @masked_word = ("_" * (word.length))
+    word
+  end
+
+  def word()
+    @word
+  end
+
+  def masked_word=(word)
+    @masked_word = word
+  end
+
+  def last_guess_good=(good)
+    @last_guess_good = good
+  end
+
+  def guesses=(guesses)
+    @guesses = guesses
+  end
+
+  def guesses()
+    @guesses ||= []
+  end
+
+  def add_guess(letter)
+    @guesses << letter
+  end
+
+	def decrement_guesses
+		@guesses_remaining = @guesses_remaining - 1
+	end
 end
 
-end
-
-controller = Controller.new($dictionary)
-controller.new_game
+#controller = Controller.new($dictionary)
+#controller.new_game
 # game.game_loop
