@@ -18,30 +18,7 @@ class Hangman
 		#wget some url
 	end
 
-	def prompt_open_saved
-		puts	"Would you like to to open a saved game? Type y/n"
-		@answer = gets.chomp
-		if @answer == "y"
-			open_saved
-		else
-			puts "Cool, lets play a new game."
-		end
-	end
-
-	def prompt_save
-		puts "Save game? y/n"
-		answer = gets.chomp
-		if answer == "y"
-
-			save_game
-			# save_game
-		else puts "Play on!"
-		end
-	end
-
-	def open_saved
-		puts "here's the #{@answer}, open_saved method works" ###read from file########
-	end
+	
 
 
 #save was here
@@ -91,7 +68,7 @@ class Hangman
 	end
 
 	def handle_good_guess
-		match_letters
+		self.match_letters
 	end
 
 	def handle_bad_guess
@@ -128,6 +105,34 @@ class Hangman
 end
 
 class Save
+
+	def prompt_load_saved
+		puts	"Would you like to to open a saved game? Type y/n"
+		@answer = gets.chomp
+		if @answer == "y"
+			self.load_saved
+		else
+			puts "Cool, lets play a new game."
+		end
+	end
+
+	def load_saved
+		puts "here's the #{@answer}, load_saved method works" ###read from file########
+		game_state = File.read()
+	end
+
+	def prompt_save
+		puts "Save game? y/n"
+		answer = gets.chomp
+		if answer == "y"
+
+			save_game
+			# save_game
+		else puts "Play on!"
+		end
+	end
+
+	
 		#Save the game to a file   ##load saved games into an array or hash so user can choose by number or index
 	def save_game
 		puts "Type a name for your saved game"
@@ -139,11 +144,11 @@ class Save
 		if File.exists?(ex_file)
 	   puts "#{filename} exists" #overwrite method?
 	  
-	   save_game
+	   self.save_game
 	  else
 			File.open(ex_file, "w") do |f|
 
-				f.puts YAML::dump(game.game_data)
+				f.puts YAML::dump(game_state)
 
 				puts "Your game was saved as #{filename}"  
 			end
@@ -156,14 +161,14 @@ save_it = Save.new
 
 game = Hangman.new
 
-game.prompt_open_saved
+game.prompt_load_saved
 
 game.get_word
 
 game.show_blanks
 
 # this works since 'game' gets me all the vars from attr_accessor
-# puts YAML::dump(game)
+puts YAML::dump(game)
 
 while !game.is_over?
 	#game.prompt_save

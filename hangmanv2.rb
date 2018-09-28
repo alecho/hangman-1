@@ -1,26 +1,34 @@
-class Hangman	
+require 'yaml'
 
-	attr_accessor :word, :answer, :guess, :result_array, :guesses_remaining, :word_array
+$dictionary = File.read('colors.txt').split(/\n/)
 
-	def initialize
-		@guesses_remaining = 10
-		@guess = ''
+
+class Controller
+
+	def initialize(dictionary)
+		@dictionary = dictionary
+		@current_game = nil
+
+		#@guesses_remaining = 10
+		#@guess = ''
 		#Intro text
 		puts "Alright, this is a hangman game.  
 		Guess letters to fill in the blanks. 
 		You have 10 guesses to start."
 	end
 
-	# load dictionary from the page?
-	def load_library
-		#wget some url
+	def new_game
+		@current_game = Game.new(@dictionary.sample, 10)
+		puts "Here's the word cheaty, #{@word}"
+		# p word
+		@current_game.game_loop
 	end
 
-	def prompt_open_saved
+	def prompt_load_saved
 		puts	"Would you like to to open a saved game? Type y/n"
 		@answer = gets.chomp
 		if @answer == "y"
-			open_saved
+			self.open_saved
 		else
 			puts "Cool, lets play a new game."
 		end
@@ -36,39 +44,71 @@ class Hangman
 		end
 	end
 
-	def open_saved
-		puts "here's the #{@answer}, open_saved method works" ###readfrom file########
-	end
+	
 
 	#Save the game to a file   ##load saved games into an array or hash so user can choose by number or index
 	def save_game
 		puts "Type a name for your saved game"
-		game_name = gets.chomp
-		filename = "#{game_name}.txt"
+		game_name = gets.chomp	
+		filename = "#{game_name}.yml"
 
 		 ex_file = File.expand_path("./saved_games/#{filename}")
 		 
 		if File.exists?(ex_file)
 	   puts "#{filename} exists" #overwrite method?
 	  
-	   save_game
+	   self.save_game
 	  else
 			File.open(ex_file, "w") do |f|
-				f.puts "some data"
+				game_state = YAML::dump(self)
+				f.puts game_state
 				puts "Your game was saved as #{filename}"  
 			end
 		end
 	end
 
-	#grab a random word from text file
-	def get_word
-		selection = IO.readlines("colors.txt")
-		@word = selection[rand(selection.length)].downcase.chomp
-		@word_array= @word.chars.to_a
-		puts "Here's the word cheaty, #{@word.upcase}"
+
+#list contents of saved games directory
+#prompt player to choose one of the saved games
+
+	def show_saved
+		puts Dir.glob("./saved_games/*")
 	end
 
-	#show the correct number of blank spaces
+	def choose_saved
+		puts "Enter the name of the game you would like to open, just the last part of the filename before the .txt" ###readfrom file########
+		@open_name = gets.chomp
+	end
+
+	def open_saved
+		 self.show_saved
+		
+		# file_to_open = File.expand_path("./saved_games/#{@open_name}")
+
+
+		File.open("./saved_games/pinktest.txt", "r") do |f|
+			 game_state = YAML::load_file(f.read)
+		end
+
+		# data =  YAML::load_file("./saved_games/redyaml.yml")
+		puts game_state
+
+		puts "__________________________"
+	end
+end #controller class
+
+
+class Game
+
+	def initialize(word, guesses_remaining)
+
+		@word = word
+
+	# attr_accessor :word, :answer, :guess, :result_array, :guesses_remaining, :word_array
+
+	end
+
+		#show the correct number of blank spaces
 	def show_blanks
 		@result_array = "_"*@word_array.length
 		puts @result_array
@@ -128,7 +168,7 @@ class Hangman
 	end
 
 	def is_over?
-		puts "guesses = #{@guesses_remaining}, result_array = #{@result_array}"
+		# puts "guesses = #{@guesses_remaining}, result_array = #{@result_array}"
 		if (@guesses_remaining == 0 or @word.chomp == @result_array)
 			true
 		end
@@ -139,26 +179,30 @@ class Hangman
 		exit
 	end
 
+	def game_loop
+
+		@current_game.prompt_load_saved
+
+		self.get_word
+
+		self.show_blanks
+
+		while !self.is_over?
+			self.prompt_save
+
+			self.prompt_guess
+
+			self.decrement_guesses
+
+			self.handle_guess(game.good_guess?(game.guess))  #make sure to call vars in context
+
+			self.check_win
+
+		end
 end
 
-
-game = Hangman.new
-
-game.prompt_open_saved
-
-game.get_word
-
-game.show_blanks
-
-while !game.is_over?
-	game.prompt_save
-
-	game.prompt_guess
-
-	game.decrement_guesses
-
-	game.handle_guess(game.good_guess?(game.guess))  #make sure to call vars in context
-
-	game.check_win
-
 end
+
+controller = Controller.new($dictionary)
+controller.new_game
+# game.game_loop

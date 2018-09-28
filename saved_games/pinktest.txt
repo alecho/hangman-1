@@ -1,0 +1,11 @@
+--- !ruby/object:Hangman
+guesses_remaining: 7
+guess: n
+answer: n
+word: pink
+word_array:
+- p
+- i
+- n
+- k
+result_array: pin_
